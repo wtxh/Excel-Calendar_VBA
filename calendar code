@@ -1,0 +1,103 @@
+Private Sub CommandButton1_Click()
+Application.ScreenUpdating = False
+y = InputBox("Calender Year : ")
+    Dim st As Worksheet    
+    a = 1
+    For Each st In Excel.Application.Worksheets
+        If st.Name <> "Config" Then
+            st.UsedRange.Clear
+            st.Name = y & "." & a
+            Sheets(13).Range("B4:X8").Copy
+            Sheets(y & "." & a).Range("B4").PasteSpecial Paste:=xlPasteAll            
+            a = a + 1
+        End If
+    Next
+    
+    Dim dm As Variant
+    dm = Array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+    If ((y Mod 400 = 0) Or (y Mod 4 = 0 And y Mod 100 <> 0)) Then
+    dm(1) = 29
+    End If
+    
+    a = 1
+    For Each st In Excel.Application.Worksheets
+        If st.Name <> "Config" Then
+           d = DateSerial(y, a, 1)
+           r = 9
+           For d = 1 To dm(a - 1)
+               dn = DateSerial(y, a, d)
+               Sheets(y & "." & a).Range("b" & r) = dn
+               w = Weekday(dn)
+               If w = 1 Then
+                    Sheets(y & "." & a).Range("C" & r) = "W" & Application.WorksheetFunction.WeekNum(dn, 21) & "-" & Format(dn, "ddd")
+                    Sheets(13).Range("B15:X15").Copy
+                    Sheets(y & "." & a).Range("B" & r).PasteSpecial Paste:=xlPasteFormats
+                    r = r + 1
+                    Sheets(y & "." & a).Range("B" & r) = "Total hours"
+                    If r - 9 > 6 Then
+                        For otc = 8 To 24 Step 5
+                            Sheets(y & "." & a).Cells(r, otc).FormulaR1C1 = "=SUM(R[-7]C:R[-1]C)"
+                        Next
+                    ElseIf a = 1 Then
+                        For otc = 8 To 24 Step 5
+                            Sheets(y & "." & a).Cells(r, otc).FormulaR1C1 = "=SUM(R9C:R[-1]C)"
+                        Next
+                    Else
+                        Lu = Sheets(y & "." & a - 1).Range("B100").End(xlUp).Row - (15 - r)
+                        Ld = Sheets(y & "." & a - 1).Range("B100").End(xlUp).Row
+                        For otc = 8 To 24 Step 5
+                            Sheets(y & "." & a).Cells(r, otc).FormulaR1C1 = "=SUM(R9C:R[-1]C," & y & "." & a - 1 & "!R" & Lu & "C:R" & Ld & "C)"
+                        Next
+                    End If
+                    Sheets(13).Range("B16:X16").Copy
+                    Sheets(y & "." & a).Range("B" & r).PasteSpecial Paste:=xlPasteFormats
+               ElseIf w = 7 Then
+                    Sheets(y & "." & a).Range("C" & r) = "W" & Application.WorksheetFunction.WeekNum(dn, 21) & "-" & Format(dn, "ddd")
+                    Sheets(13).Range("B15:X15").Copy
+                    Sheets(y & "." & a).Range("B" & r).PasteSpecial Paste:=xlPasteFormats
+               Else
+                    Sheets(y & "." & a).Range("C" & r) = "W" & Application.WorksheetFunction.WeekNum(dn, 21) & "-" & Format(dn, "ddd")
+                    Sheets(13).Range("B11:X11").Copy
+                    Sheets(y & "." & a).Range("B" & r).PasteSpecial Paste:=xlPasteFormats
+                    For otc = 8 To 24 Step 5
+                        Sheets(y & "." & a).Cells(r, otc).FormulaR1C1 = "=if(RC[-1]="""","""",RC[-1]-8)"
+                    Next
+               End If
+               r = r + 1
+           Next
+           a = a + 1
+        End If
+   Next 
+   a = 1
+   For Each st In Excel.Application.Worksheets
+        If st.Name <> "Config" Then
+            x = Sheets(y & "." & a).Range("B100").End(xlUp).Row + 1
+            Sheets(13).Range("B17:X17").Copy
+            Sheets(y & "." & a).Range("B" & x) = "General Total OT"
+            Sheets(y & "." & a).Range("B" & x).PasteSpecial Paste:=xlPasteFormats
+            If a = 1 Then
+                For myr = 8 To 24 Step 5
+                    Sheets(y & "." & a).Cells(x, myr).FormulaR1C1 = "=SUM(SUMIF(R9C2:R50C2,""Total hours"",R9C:R50C),Config!R18C)"
+                Next
+            Else
+                Ld = Sheets(y & "." & a - 1).Range("B100").End(xlUp).Row
+                For myr = 8 To 24 Step 5
+                    Sheets(y & "." & a).Cells(x, myr).FormulaR1C1 = "=SUM(SUMIF(R9C2:R50C2," & """Total hours""" & ",R9C:R50C)," & y & "." & a - 1 & "!R" & Ld & "C:R" & Ld & "C)"
+                Next
+            End If
+            a = a + 1
+        End If
+    Next
+    
+   a = 1
+   For Each st In Excel.Application.Worksheets
+        If st.Name <> "Config" Then
+            x = Sheets(y & "." & a).Range("B100").End(xlUp).Row + 2
+            Sheets(13).Range("B19:S28").Copy
+            Sheets(y & "." & a).Range("B" & x).PasteSpecial Paste:=xlPasteAll
+    
+            a = a + 1
+        End If
+    Next
+Application.ScreenUpdating = True
+End Sub
